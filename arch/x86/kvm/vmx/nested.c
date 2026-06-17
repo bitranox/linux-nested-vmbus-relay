@@ -3540,7 +3540,7 @@ static bool vmx_get_nested_state_pages(struct kvm_vcpu *vcpu)
 	/*
 	 * Note: nested_get_evmcs_page() also updates 'vp_assist_page' copy
 	 * in 'struct kvm_vcpu_hv' in case eVMCS is in use, this is mandatory
-	 * to make nested_evmcs_l2_tlb_flush_enabled() work correctly post
+	 * to make nested_evmcs_l2_direct_hypercall_enabled() work correctly post
 	 * migration.
 	 */
 	if (!nested_get_evmcs_page(vcpu)) {
@@ -6549,7 +6549,7 @@ static bool nested_vmx_l0_wants_exit(struct kvm_vcpu *vcpu,
 	case EXIT_REASON_VMCALL:
 		/* Hyper-V L2 TLB flush hypercall is handled by L0 */
 		return guest_hv_cpuid_has_l2_tlb_flush(vcpu) &&
-			nested_evmcs_l2_tlb_flush_enabled(vcpu) &&
+			nested_evmcs_l2_direct_hypercall_enabled(vcpu) &&
 			kvm_hv_is_tlb_flush_hcall(vcpu);
 #endif
 	case EXIT_REASON_CPUID:

@@ -209,7 +209,7 @@ int nested_enable_evmcs(struct kvm_vcpu *vcpu,
 	return 0;
 }
 
-bool nested_evmcs_l2_tlb_flush_enabled(struct kvm_vcpu *vcpu)
+bool nested_evmcs_l2_direct_hypercall_enabled(struct kvm_vcpu *vcpu)
 {
 	struct kvm_vcpu_hv *hv_vcpu = to_hv_vcpu(vcpu);
 	struct vcpu_vmx *vmx = to_vmx(vcpu);

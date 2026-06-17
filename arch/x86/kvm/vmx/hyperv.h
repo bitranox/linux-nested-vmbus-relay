@@ -58,7 +58,7 @@ int nested_enable_evmcs(struct kvm_vcpu *vcpu,
 			uint16_t *vmcs_version);
 void nested_evmcs_filter_control_msr(struct kvm_vcpu *vcpu, u32 msr_index, u64 *pdata);
 int nested_evmcs_check_controls(struct vmcs12 *vmcs12);
-bool nested_evmcs_l2_tlb_flush_enabled(struct kvm_vcpu *vcpu);
+bool nested_evmcs_l2_direct_hypercall_enabled(struct kvm_vcpu *vcpu);
 void vmx_hv_inject_synthetic_vmexit_post_tlb_flush(struct kvm_vcpu *vcpu);
 #else
 static inline bool evmptr_is_valid(u64 evmptr)
