@@ -676,6 +676,16 @@ struct kvm_vcpu_hv_stimer {
 	u64 exp_time;
 	struct hv_message msg;
 	bool msg_pending;
+	/*
+	 * Past-dated one-shot re-arm storm guard (hosts without TSC scaling):
+	 * imm_fire_ns/imm_fire_count detect the immediate-fire loop, imm_dwell_ns
+	 * is the current adaptive-backoff dwell, imm_future_count counts
+	 * consecutive genuinely-future arms for the throttle-release hysteresis.
+	 */
+	u64 imm_fire_ns;
+	u32 imm_fire_count;
+	u64 imm_dwell_ns;
+	u32 imm_future_count;
 };
 
 /* Hyper-V synthetic interrupt controller (SynIC)*/
