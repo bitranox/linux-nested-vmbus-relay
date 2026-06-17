@@ -967,6 +967,10 @@ struct kvm_hyperv_eventfd {
 /* x86-specific KVM_EXIT_HYPERCALL flags. */
 #define KVM_EXIT_HYPERCALL_LONG_MODE	_BITULL(0)
 
+/* Relayable nested Hyper-V hypercalls for KVM_CAP_NESTED_HYPERV_HCALL_RELAY. */
+#define KVM_NESTED_HYPERV_RELAY_POST_MESSAGE	_BITULL(0)
+#define KVM_NESTED_HYPERV_RELAY_SIGNAL_EVENT	_BITULL(1)
+
 #define KVM_X86_DEFAULT_VM	0
 #define KVM_X86_SW_PROTECTED_VM	1
 #define KVM_X86_SEV_VM		2

@@ -6728,6 +6728,41 @@ bool nested_vmx_reflect_vmexit(struct kvm_vcpu *vcpu)
 
 	trace_kvm_nested_vmexit(vcpu, KVM_ISA_VMX);
 
+	/*
+	 * Relay a nested Hyper-V root partition's enlightened synic posts to L0
+	 * rather than reflecting them to L1.  A Windows guest that enables
+	 * Hyper-V/VBS runs its kernel as the root partition of a nested
+	 * hypervisor (an L2 guest), whose HvPostMessage/HvSignalEvent VMCALLs
+	 * would otherwise be reflected to L1, which has no path to forward them
+	 * to the userspace VMM.  When userspace selected the call class via
+	 * KVM_CAP_NESTED_HYPERV_HCALL_RELAY and L1 authorized this L2 for direct
+	 * nested hypercalls (the same eVMCS gate honored for the L2 TLB-flush
+	 * hypercall), handle the post in L0: clear the nested bit so the standard
+	 * hypercall path accepts the call, and return false to keep the exit in
+	 * L0.  An L2 that L1 did not authorize (a grandchild of the root) is
+	 * never relayed and keeps its own L1 synic.
+	 */
+	if (vcpu->kvm->arch.nested_hv_relay_mask &&
+	    exit_reason.basic == EXIT_REASON_VMCALL &&
+	    nested_evmcs_l2_direct_hypercall_enabled(vcpu)) {
+		u64 mask = vcpu->kvm->arch.nested_hv_relay_mask;
+		u64 input = kvm_rcx_read(vcpu);
+		u16 code = input & 0xffff;
+		bool relay = false;
+
+		if (input & HV_HYPERCALL_NESTED) {
+			if (code == HVCALL_POST_MESSAGE)
+				relay = mask & KVM_NESTED_HYPERV_RELAY_POST_MESSAGE;
+			else if (code == HVCALL_SIGNAL_EVENT)
+				relay = mask & KVM_NESTED_HYPERV_RELAY_SIGNAL_EVENT;
+		}
+
+		if (relay) {
+			kvm_rcx_write(vcpu, input & ~HV_HYPERCALL_NESTED);
+			return false;
+		}
+	}
+
 	/* If L0 (KVM) wants the exit, it trumps L1's desires. */
 	if (nested_vmx_l0_wants_exit(vcpu, exit_reason))
 		return false;

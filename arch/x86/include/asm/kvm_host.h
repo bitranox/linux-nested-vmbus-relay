@@ -1435,6 +1435,8 @@ enum kvm_mmu_type {
 };
 
 struct kvm_arch {
+	/* Relayable nested Hyper-V hypercalls (KVM_CAP_NESTED_HYPERV_HCALL_RELAY). */
+	u64 nested_hv_relay_mask;
 	unsigned long n_used_mmu_pages;
 	unsigned long n_requested_mmu_pages;
 	unsigned long n_max_mmu_pages;

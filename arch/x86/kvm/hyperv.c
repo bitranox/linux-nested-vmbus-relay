@@ -2591,6 +2591,26 @@ int kvm_hv_hypercall(struct kvm_vcpu *vcpu)
 		kvm_hv_hypercall_read_xmm(&hc);
 	}
 
+	/*
+	 * A relayed nested Hyper-V root's HvPostMessage/HvSignalEvent (see
+	 * nested_vmx_reflect_vmexit()) runs on nested EPT and carries an L2 GPA
+	 * in ingpa.  Translate it to an L1 GPA, mirroring the L2 TLB-flush slow
+	 * path and gating on mmu_is_nested(): translate_nested_gpa() requires an
+	 * active nested MMU, and with shadow paging the L2 GPA is already an L1
+	 * GPA.  The walk rejects pages removed from the L2 root's GPA space
+	 * (INVALID_GPA).  It runs synchronously in the faulting vCPU's exit
+	 * context and is not cached.
+	 */
+	if (vcpu->kvm->arch.nested_hv_relay_mask && !hc.fast && mmu_is_nested(vcpu) &&
+	    (hc.code == HVCALL_POST_MESSAGE || hc.code == HVCALL_SIGNAL_EVENT)) {
+		hc.ingpa = kvm_x86_ops.nested_ops->translate_nested_gpa(
+				vcpu, hc.ingpa, PFERR_GUEST_FINAL_MASK, NULL, 0);
+		if (unlikely(hc.ingpa == INVALID_GPA)) {
+			ret = HV_STATUS_INVALID_HYPERCALL_INPUT;
+			goto hypercall_complete;
+		}
+	}
+
 	switch (hc.code) {
 	case HVCALL_NOTIFY_LONG_SPIN_WAIT:
 		if (unlikely(hc.rep || hc.var_cnt)) {

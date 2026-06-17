@@ -6730,6 +6730,14 @@ int kvm_vm_ioctl_enable_cap(struct kvm *kvm,
 		return -EINVAL;
 
 	switch (cap->cap) {
+	case KVM_CAP_NESTED_HYPERV_HCALL_RELAY:
+		r = -EINVAL;
+		if (cap->args[0] & ~(KVM_NESTED_HYPERV_RELAY_POST_MESSAGE |
+				     KVM_NESTED_HYPERV_RELAY_SIGNAL_EVENT))
+			break;
+		kvm->arch.nested_hv_relay_mask = cap->args[0];
+		r = 0;
+		break;
 	case KVM_CAP_DISABLE_QUIRKS2:
 		r = -EINVAL;
 		if (cap->args[0] & ~kvm_caps.supported_quirks)
